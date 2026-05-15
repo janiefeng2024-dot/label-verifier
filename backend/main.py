@@ -1,10 +1,15 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 from typing import List, Dict, Any
 from PIL import Image
+
 import io
 import logging
 import time
+import os
 
 from ocr import extract_text_from_image
 from matcher import LabelMatcher
@@ -27,6 +32,14 @@ app = FastAPI(
     description="OCR + rule-based compliance system for alcohol labels"
 )
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app.mount(
+    "/frontend",
+    StaticFiles(directory=os.path.join(BASE_DIR, "frontend")),
+    name="frontend"
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,7 +53,9 @@ app.add_middleware(
 # -----------------------------
 matcher = LabelMatcher()
 
-
+# -----------------------------
+# Helpers
+# -----------------------------
 def load_image(file: UploadFile) -> Image.Image:
     """
     Convert uploaded file into PIL image
@@ -48,7 +63,12 @@ def load_image(file: UploadFile) -> Image.Image:
     try:
         contents = file.file.read()
         image = Image.open(io.BytesIO(contents)).convert("RGB")
+
+        # 🚀 speed optimization for OCR (important for 5 sec requirement)
+        image.thumbnail((1200, 1200))
+
         return image
+
     except Exception as e:
         logger.error(f"Image load error: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid image file")
@@ -61,6 +81,7 @@ def process_image(image: Image.Image) -> Dict[str, Any]:
     2. Label validation
     """
     start = time.time()
+
     text = extract_text_from_image(image)
     validation = matcher.validate(text)
 
@@ -73,12 +94,11 @@ def process_image(image: Image.Image) -> Dict[str, Any]:
 # -----------------------------
 # Health endpoints
 # -----------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 @app.get("/")
 def root():
-    return {
-        "service": "Alcohol Label Verification API",
-        "status": "running"
-    }
+    return FileResponse(os.path.join(BASE_DIR, "frontend", "index.html"))
 
 
 @app.get("/health")
@@ -89,7 +109,7 @@ def health():
 # Single verification
 # -----------------------------
 @app.post("/verify")
-def verify_single(file: UploadFile = File(...)):
+async def verify_single(file: UploadFile = File(...)):
     logger.info(f"Single file received: {file.filename}")
 
     try:
@@ -112,21 +132,16 @@ def verify_single(file: UploadFile = File(...)):
         }
 
 # -----------------------------
-# Batch verification endpoint
+# Batch verification
 # -----------------------------
 @app.post("/verify/batch")
-async def verify_batch(
-    files: List[UploadFile] = File(..., media_type="multipart/form-data")
-):
+async def verify_batch(files: List[UploadFile] = File(...)):
     logger.info(f"Batch request received: {len(files)} files")
 
     results = []
 
     for file in files:
         try:
-            # reset pointer safety (important for multiple reads)
-            file.file.seek(0)
-
             image = load_image(file)
             result = process_image(image)
 

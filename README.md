@@ -55,17 +55,6 @@ http://localhost:5500
 
 ---
 
-## 🗂 Screenshot Folder Structure
-
-screenshots/
-├── frontend_upload.png
-├── swagger_ui.png
-├── valid_result.png
-├── invalid_result.png
-├── batch_result.png
-
----
-
 ## 🧠 Notes
 
 - OCR accuracy depends on image quality
