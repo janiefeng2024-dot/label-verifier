@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+pillow
+pytesseract
+regex
+python-multipart

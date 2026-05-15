@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Alcohol Label Verification</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h2>Alcohol Label Verification System</h2>
+
+    <!-- ===================== -->
+    <!-- SINGLE FILE SECTION -->
+    <!-- ===================== -->
+    <section>
+        <h3>Single Upload</h3>
+
+        <input type="file" id="singleFile" accept="image/*" />
+        <br/>
+        <button onclick="verifySingle()">Verify Label</button>
+
+        <div id="singleResult"></div>
+    </section>
+
+    <!-- ===================== -->
+    <!-- BATCH UPLOAD SECTION -->
+    <!-- ===================== -->
+    <section>
+        <h3>Batch Upload</h3>
+
+        <input type="file" id="batchFile" accept="image/*" multiple />
+        <br/>
+        <button onclick="verifyBatch()">Verify Batch</button>
+
+        <div id="batchResult"></div>
+    </section>
+
+    <!-- ===================== -->
+    <!-- FOOTER -->
+    <!-- ===================== -->
+    <footer style="text-align:center; margin-top:30px; font-size:12px; color:#666;">
+        AI-Powered Compliance Checker Prototype
+    </footer>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
